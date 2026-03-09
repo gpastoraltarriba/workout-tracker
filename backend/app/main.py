@@ -38,10 +38,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 def startup():
     wait_for_db()
-
+    # Run migrations automatically
+    from alembic.config import Config
+    from alembic import command
+    alembic_cfg = Config("/app/alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+    logger.info("✅ Migrations applied!")
 app.include_router(auth.router,     prefix="/api/v1/auth",     tags=["auth"])
 app.include_router(workouts.router, prefix="/api/v1/workouts", tags=["workouts"])
 app.include_router(stats.router,    prefix="/api/v1/stats",    tags=["stats"])
